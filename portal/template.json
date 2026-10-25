@@ -1250,7 +1250,7 @@
     }
 },
     {
-      "condition": "[variables('deployPrivateEndpointKeyVault')]",
+      "condition": "[variables('deployPdnsKeyVault')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "kv-private-dns-zone",
@@ -1960,7 +1960,7 @@
 }, 
 
 {
-  "condition": "[variables('deployPdnsKeyVault')]",
+  "condition": "[variables('deployPrivateEndpointKeyVault')]",
   "type": "Microsoft.Resources/deployments",
   "apiVersion": "2025-04-01",
   "name": "[concat('kv-private-endpoint-', variables('uniqueSuffix'))]",

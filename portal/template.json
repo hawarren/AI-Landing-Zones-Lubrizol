@@ -164,6 +164,7 @@
         "description": "Optional. Existing Private DNS Zone IDs when reusing existing zones from a platform landing zone."
       },
       "defaultValue": {
+          "searchZoneId": "",
           "cognitiveservicesZoneId": "",
           "openaiZoneId": "",
           "aiServicesZoneId": "",
@@ -392,6 +393,12 @@
     "deployPdnsAcr": "[and(variables('deployPdnsAndPe'), variables('deployAcr'))]",
     "deployPdnsAppInsights": "[and(variables('deployPdnsAndPe'), variables('deployAppInsights'))]",
     "deployPdnsMonitor": "[and(variables('deployPdnsAndPe'), variables('deployAppInsights'), variables('deployLogAnalytics'))]",
+
+    "deployPrivateEndpointKeyVault": "[and(variables('deployKeyVault'), or(variables('deployPdnsKeyVault'), not(empty(parameters('existingDNSZones').keyVaultZoneId))))]",
+    "deployPrivateEndpointCosmosSql": "[and(variables('deployCosmosDb'), or(variables('deployPdnsCosmosSql'), not(empty(parameters('existingDNSZones').cosmosSqlZoneId))))]",
+    "deployPrivateEndpointBlob": "[and(variables('deploySa'), or(variables('deployPdnsBlob'), not(empty(parameters('existingDNSZones').blobZoneId))))]",
+    "deployPrivateEndpointAppConfig": "[and(variables('deployAppConfig'), or(variables('deployPdnsAppConfig'), not(empty(parameters('existingDNSZones').appConfigZoneId))))]",
+    "deployPrivateEndpointAcr": "[and(variables('deployAcr'), or(variables('deployPdnsAcr'), not(empty(parameters('existingDNSZones').acrZoneId))))]",
 
 
     "vnetName": "[if(variables('deployVnet'), concat('vnet-', parameters('baseName')), parameters('existingVnetName'))]",
@@ -1243,7 +1250,7 @@
     }
 },
     {
-      "condition": "[variables('deployPdnsKeyVault')]",
+      "condition": "[variables('deployPrivateEndpointKeyVault')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "kv-private-dns-zone",
@@ -1986,7 +1993,7 @@
             "privateDnsZoneGroupConfigs": [
               {
                 "name": "kvARecord",
-                "privateDnsZoneResourceId": "[if(variables('deployPdnsKeyVault'), reference('kv-private-dns-zone').outputs.resourceId.value, coalesce(parameters('resourceIds').keyVaultPrivateDnsZoneResourceId, ''))]"
+                "privateDnsZoneResourceId": "[if(variables('deployPdnsKeyVault'), reference('kv-private-dns-zone').outputs.resourceId.value, if(not(empty(parameters('existingDNSZones').keyVaultZoneId)), parameters('existingDNSZones').keyVaultZoneId, coalesce(parameters('resourceIds').keyVaultPrivateDnsZoneResourceId, '')))]"
               }
             ]
           }
@@ -2002,7 +2009,7 @@
 },
 
 {
-  "condition": "[variables('deployPdnsCosmosSql')]",
+  "condition": "[variables('deployPrivateEndpointCosmosSql')]",
   "type": "Microsoft.Resources/deployments",
   "apiVersion": "2025-04-01",
   "name": "[concat('cosmos-private-endpoint-', variables('uniqueSuffix'))]",
@@ -2035,7 +2042,7 @@
             "privateDnsZoneGroupConfigs": [
               {
                 "name": "cosmosARecord",
-                "privateDnsZoneResourceId": "[if(variables('deployPdnsCosmosSql'), reference('dep-cosmos-std-private-dns-zone').outputs.resourceId.value, coalesce(parameters('resourceIds').cosmosPrivateDnsZoneResourceId, ''))]"
+                "privateDnsZoneResourceId": "[if(variables('deployPdnsCosmosSql'), reference('dep-cosmos-std-private-dns-zone').outputs.resourceId.value, if(not(empty(parameters('existingDNSZones').cosmosSqlZoneId)), parameters('existingDNSZones').cosmosSqlZoneId, coalesce(parameters('resourceIds').cosmosPrivateDnsZoneResourceId, '')))]"
               }
             ]
           }
@@ -2051,7 +2058,7 @@
 },
 
 {
-  "condition": "[variables('deployPdnsBlob')]",
+  "condition": "[variables('deployPrivateEndpointBlob')]",
   "type": "Microsoft.Resources/deployments",
   "apiVersion": "2025-04-01",
   "name": "[concat('blob-private-endpoint-', variables('uniqueSuffix'))]",
@@ -2084,7 +2091,7 @@
             "privateDnsZoneGroupConfigs": [
               {
                 "name": "blobARecord",
-                "privateDnsZoneResourceId": "[if(variables('deployPdnsBlob'), reference('dep-blob-std-private-dns-zone').outputs.resourceId.value, coalesce(parameters('resourceIds').blobPrivateDnsZoneResourceId, ''))]"
+                "privateDnsZoneResourceId": "[if(variables('deployPdnsBlob'), reference('dep-blob-std-private-dns-zone').outputs.resourceId.value, if(not(empty(parameters('existingDNSZones').blobZoneId)), parameters('existingDNSZones').blobZoneId, coalesce(parameters('resourceIds').blobPrivateDnsZoneResourceId, '')))]"
               }
             ]
           }
@@ -2100,7 +2107,7 @@
 },
 
 {
-  "condition": "[variables('deployPdnsAppConfig')]",
+  "condition": "[variables('deployPrivateEndpointAppConfig')]",
   "type": "Microsoft.Resources/deployments",
   "apiVersion": "2025-04-01",
   "name": "[concat('appconfig-private-endpoint-', variables('uniqueSuffix'))]",
@@ -2133,7 +2140,7 @@
             "privateDnsZoneGroupConfigs": [
               {
                 "name": "appConfigARecord",
-                "privateDnsZoneResourceId": "[if(variables('deployPdnsAppConfig'), reference('appconfig-private-dns-zone').outputs.resourceId.value, coalesce(parameters('resourceIds').appConfigPrivateDnsZoneResourceId, ''))]"
+                "privateDnsZoneResourceId": "[if(variables('deployPdnsAppConfig'), reference('appconfig-private-dns-zone').outputs.resourceId.value, if(not(empty(parameters('existingDNSZones').appConfigZoneId)), parameters('existingDNSZones').appConfigZoneId, coalesce(parameters('resourceIds').appConfigPrivateDnsZoneResourceId, '')))]"
               }
             ]
           }
@@ -2198,7 +2205,7 @@
 },
 
 {
-  "condition": "[variables('deployPdnsAcr')]",
+  "condition": "[variables('deployPrivateEndpointAcr')]",
   "type": "Microsoft.Resources/deployments",
   "apiVersion": "2025-04-01",
   "name": "[concat('acr-private-endpoint-', variables('uniqueSuffix'))]",
@@ -2231,7 +2238,7 @@
             "privateDnsZoneGroupConfigs": [
               {
                 "name": "acrARecord",
-                "privateDnsZoneResourceId": "[if(variables('deployPdnsAcr'), reference('acr-private-dns-zone').outputs.resourceId.value, coalesce(parameters('resourceIds').acrPrivateDnsZoneResourceId, ''))]"
+                "privateDnsZoneResourceId": "[if(variables('deployPdnsAcr'), reference('acr-private-dns-zone').outputs.resourceId.value, if(not(empty(parameters('existingDNSZones').acrZoneId)), parameters('existingDNSZones').acrZoneId, coalesce(parameters('resourceIds').acrPrivateDnsZoneResourceId, '')))]"
               }
             ]
           }
@@ -2375,17 +2382,28 @@
       "value": true
     },
     "configurePrivateDns": {
-      "value": "[variables('deployPdnsAndPe')]"
+      "value": "[or(variables('deployPdnsAndPe'), and(not(empty(parameters('existingDNSZones').aiServicesZoneId)), not(empty(parameters('existingDNSZones').openaiZoneId)), not(empty(parameters('existingDNSZones').cognitiveservicesZoneId)), not(empty(parameters('existingDNSZones').searchZoneId)), not(empty(parameters('existingDNSZones').blobZoneId)), not(empty(parameters('existingDNSZones').cosmosSqlZoneId)), not(empty(parameters('existingDNSZones').keyVaultZoneId))))]"
     },
     "existingDNSZones": {
       "value": {
-        "privatelink.services.ai.azure.com" : "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
-        "privatelink.openai.azure.com" : "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
-        "privatelink.cognitiveservices.azure.com" : "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
+        "privatelink.services.ai.azure.com": "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
+        "privatelink.openai.azure.com": "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
+        "privatelink.cognitiveservices.azure.com": "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
         "privatelink.vaultcore.azure.net": "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
         "privatelink.documents.azure.com": "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
-        "[format('privatelink.blob.{0}', environment().suffixes.storage)]"  : "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
+        "[format('privatelink.blob.{0}', environment().suffixes.storage)]": "[if(variables('deployPdnsAndPe'), resourceGroup().name, '')]",
         "privatelink.search.windows.net": ""
+      }
+    },
+    "existingDnsZoneResourceIds": {
+      "value": {
+        "privatelink.services.ai.azure.com": "[parameters('existingDNSZones').aiServicesZoneId]",
+        "privatelink.openai.azure.com": "[parameters('existingDNSZones').openaiZoneId]",
+        "privatelink.cognitiveservices.azure.com": "[parameters('existingDNSZones').cognitiveservicesZoneId]",
+        "privatelink.vaultcore.azure.net": "[parameters('existingDNSZones').keyVaultZoneId]",
+        "privatelink.documents.azure.com": "[parameters('existingDNSZones').cosmosSqlZoneId]",
+        "[format('privatelink.blob.{0}', environment().suffixes.storage)]": "[parameters('existingDNSZones').blobZoneId]",
+        "privatelink.search.windows.net": "[parameters('existingDNSZones').searchZoneId]"
       }
     },
     "includeAssociatedResources": {

@@ -257,6 +257,12 @@ When Platform Landing Zone = Yes, you must select existing Private DNS Zones for
 | Container Registry | ACR = Yes |
 | Application Insights | App Insights = Yes |
 
+The selected zone resource IDs are passed to private endpoint DNS zone groups
+so Azure can manage endpoint records in the central zones. This avoids manual
+record creation, but does not create hub-zone VNet links or configure routing.
+See the [central Private DNS architecture guide](central-private-dns.md) for
+the previous failure mode, deployment flow, and platform-team responsibilities.
+
 ### Automatic Network Architecture (Deploy VNet = Yes)
 
 When deploying a new VNet, the template automatically creates:

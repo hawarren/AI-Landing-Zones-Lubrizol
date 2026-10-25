@@ -934,6 +934,17 @@
               "visible": "[equals(steps('networking').deployPeering, 'true')]"
             },
             {
+              "name": "searchPrivateDnsZone",
+              "type": "Microsoft.Solutions.ResourceSelector",
+              "label": "Select Azure Private DNS Zone for Azure AI Search",
+              "resourceType": "Microsoft.network/privateDnsZones",
+              "toolTip": "Select the existing Azure AI Search private DNS zone",
+              "constraints": {
+                "required": "[equals(steps('basics').platformLandingZone, 'true')]"
+              },
+              "visible": "[equals(steps('basics').platformLandingZone, 'true')]"
+            },
+            {
               "name": "cognitiveServicesPrivateDnsZone",
               "type": "Microsoft.Solutions.ResourceSelector",
               "label": "Select Azure Private DNS Zone for Cognitive Services",
@@ -1127,6 +1138,7 @@
         "peerVnetId": "[if(equals(steps('networking').deployPeering, 'true'), steps('networking').peerVnet.id, '')]",
         "peerVnetName": "[if(equals(steps('networking').deployPeering, 'true'), steps('networking').peerVnet.name, '')]",
         "existingDNSZones": {
+          "searchZoneId": "[coalesce(steps('networking').searchPrivateDnsZone.id, '')]",
           "cognitiveservicesZoneId": "[coalesce(steps('networking').cognitiveServicesPrivateDnsZone.id, '')]",
           "openaiZoneId": "[coalesce(steps('networking').openaiPrivateDnsZone.id, '')]",
           "aiServicesZoneId": "[coalesce(steps('networking').aiServicesPrivateDnsZone.id, '')]",
